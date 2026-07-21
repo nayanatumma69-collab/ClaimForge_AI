@@ -10,7 +10,7 @@ VECTOR_DB_DIR = os.path.join(BASE_DIR, "vector_db")
 @st.cache_resource
 def get_embedding_engine():
     print("🔄 [Retriever] Loading Hugging Face Embedding Engine into cache...")
-    return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    return HuggingFaceEmbeddings(model_name="openai/gpt-oss-120b")
 
 def fetch_context(query_text: str, top_k: int = 4):
     """Fetches context chunks from local Chroma DB."""
