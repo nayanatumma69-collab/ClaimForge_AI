@@ -1,0 +1,21 @@
+# Python byte-code / cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environment variables & keys
+.env
+*.env
+
+# Vector database local storage
+vector_db/
+*.sqlite3
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# System files
+.DS_Store
