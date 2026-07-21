@@ -22,7 +22,17 @@ def get_embedding_engine():
         model_kwargs=model_kwargs
     )
 
-def fetch_context(query_text: str, top_k: int = 4):
+def fetch_context(query_text: str = None, query: str = None, top_k: int = 4):
+    """
+    Fetches context chunks from local Chroma DB.
+    Supports both `query` and `query_text` keyword arguments.
+    """
+    # Resolve argument name variations
+    search_query = query_text or query
+    if not search_query:
+        print("⚠️ [Retriever] Empty query passed to fetch_context.")
+        return []
+
     if not os.path.exists(VECTOR_DB_DIR):
         print(f"⚠️ [Retriever] Directory missing at {VECTOR_DB_DIR}")
         return []
@@ -34,6 +44,6 @@ def fetch_context(query_text: str, top_k: int = 4):
     )
 
     retriever = vector_store.as_retriever(search_kwargs={"k": top_k})
-    documents = retriever.invoke(query_text)
-    print(f"📄 [Retriever] Found {len(documents)} context chunks.")
+    documents = retriever.invoke(search_query)
+    print(f"📄 [Retriever] Found {len(documents)} context chunks for query: '{search_query[:40]}...'")
     return documents
