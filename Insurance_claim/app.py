@@ -13,8 +13,20 @@ VECTOR_DB_PATH = "Insurance_claim/vector_db"
 if not os.path.exists(VECTOR_DB_PATH) or len(os.listdir(VECTOR_DB_PATH)) == 0:
     st.warning("⚠️ Vector store index missing. Running initial document ingestion for PDF files...")
     try:
-        from Insurance_claim.rag.ingest import ingest_documents
-        ingest_documents()
+        import importlib
+        ingest_module = importlib.import_module("Insurance_claim.rag.ingest")
+        
+        # Flexibly locate and run the main ingestion function
+        if hasattr(ingest_module, "run_ingestion"):
+            ingest_module.run_ingestion()
+        elif hasattr(ingest_module, "ingest_documents"):
+            ingest_module.ingest_documents()
+        elif hasattr(ingest_module, "main"):
+            ingest_module.main()
+        else:
+            # Fallback: execute as a script if no standard function signature is matched
+            exec(open("Insurance_claim/rag/ingest.py").read())
+            
         st.success("✅ PDF Policy Documents successfully embedded and indexed!")
     except Exception as e:
         st.error(f"❌ Document Ingestion Error: {str(e)}")
