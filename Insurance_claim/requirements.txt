@@ -6,6 +6,8 @@ langchain-groq
 langchain-chroma
 chromadb
 sentence-transformers
+transformers
+accelerate
 pypdf
 streamlit
 tavily-python
