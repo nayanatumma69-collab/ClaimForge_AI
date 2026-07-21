@@ -11,7 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 VECTOR_DB_PATH = "Insurance_claim/vector_db"
 
 if not os.path.exists(VECTOR_DB_PATH) or len(os.listdir(VECTOR_DB_PATH)) == 0:
-    #st.warning("⚠️ Vector store index missing. Running initial document ingestion for PDF files...")
+    st.warning("⚠️ Vector store index missing. Running initial document ingestion for PDF files...")
     try:
         import importlib
         ingest_module = importlib.import_module("Insurance_claim.rag.ingest")
@@ -27,9 +27,9 @@ if not os.path.exists(VECTOR_DB_PATH) or len(os.listdir(VECTOR_DB_PATH)) == 0:
             # Fallback: execute as a script if no standard function signature is matched
             exec(open("Insurance_claim/rag/ingest.py").read())
             
-        #st.success("✅ PDF Policy Documents successfully embedded and indexed!")
+        st.success("✅ PDF Policy Documents successfully embedded and indexed!")
     except Exception as e:
-        #st.error(f"❌ Document Ingestion Error: {str(e)}")
+        st.error(f"❌ Document Ingestion Error: {str(e)}")
         pass
 # Import the compiled LangGraph engine
 from Insurance_claim.graph import app_engine
