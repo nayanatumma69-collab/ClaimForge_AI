@@ -31,7 +31,7 @@ def run_ingestion():
     print(f"✂️ Split {len(docs)} documents into {len(chunks)} chunks.")
 
     # Generate embeddings and persist to disk
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    embeddings = HuggingFaceEmbeddings(model_name="openai/gpt-oss-120b")
     Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,

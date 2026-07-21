@@ -9,7 +9,7 @@ VECTOR_DB_DIR = os.path.join(BASE_DIR, "vector_db")
 print(f"🔍 [Retriever] Querying Vector Database at: {VECTOR_DB_DIR}")
 
 # Load the local HuggingFace embedding engine
-embedding_engine = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+embedding_engine = HuggingFaceEmbeddings(model_name="openai/gpt-oss-120b")
 
 def fetch_context(query_text: str, top_k: int = 4):
     """Fetches the top_k most relevant PDF context chunks from local Chroma DB."""
