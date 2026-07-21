@@ -1,64 +1,28 @@
 import os
-from typing import List
 from langchain_chroma import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_core.documents import Document
-from Insurance_claim.rag.ingest import load_and_split_insurance_docs
 
-# 1. Define configuration constants
-DB_DIR = "Insurance_claim/vector_db"
+# Calculate absolute path relative to this script file location
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+VECTOR_DB_DIR = os.path.join(BASE_DIR, "vector_db")
 
-def get_vector_store() -> Chroma:
-    """
-    Initializes or loads the Chroma vector database.
-    If the database is empty, it runs the ingestion script to populate it.
-    """
-    # Using a reliable, lightweight open-source embedding model that runs perfectly for free in Colab
-    print("Loading HuggingFace Embedding Model ('all-MiniLM-L6-v2')...")
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+print(f"🔍 [Retriever] Querying Vector Database at: {VECTOR_DB_DIR}")
 
-    # If database files don't exist yet, build them
-    if not os.listdir(DB_DIR):
-        print("Vector database is empty. Running data ingestion...")
-        chunks = load_and_split_insurance_docs()
+# Load the local HuggingFace embedding engine
+embedding_engine = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-        print(f"Indexing {len(chunks)} chunks into Chroma DB...")
-        vector_store = Chroma.from_documents(
-            documents=chunks,
-            embedding=embeddings,
-            persist_directory=DB_DIR
-        )
-        print("✅ Vector database successfully created and saved!")
-    else:
-        print("💾 Found existing vector database. Loading from disk...")
-        vector_store = Chroma(
-            persist_directory=DB_DIR,
-            embedding_function=embeddings
-        )
-
-    return vector_store
-
-def fetch_context(query: str, top_k: int = 3) -> List[Document]:
-    """
-    Exposes a clean interface for Team Member 3 (Sai) to call from LangGraph nodes.
-    Returns the top matching context blocks for a given claim search string.
-    """
-    try:
-        vector_store = get_vector_store()
-        # Perform similarity search
-        results = vector_store.similarity_search(query, k=top_k)
-        return results
-    except Exception as e:
-        print(f"❌ Error during context retrieval: {str(e)}")
+def fetch_context(query_text: str, top_k: int = 4):
+    """Fetches the top_k most relevant PDF context chunks from local Chroma DB."""
+    if not os.path.exists(VECTOR_DB_DIR):
+        print(f"⚠️ [Retriever] Directory missing at {VECTOR_DB_DIR}")
         return []
 
-# Standalone manual test block
-if __name__ == "__main__":
-    print("--- Running Retriever Test ---")
-    sample_query = "Claim for medical hospitalisation due to accidental injury"
-    matched_docs = fetch_context(sample_query, top_k=2)
+    vector_store = Chroma(
+        persist_directory=VECTOR_DB_DIR,
+        embedding_function=embedding_engine
+    )
 
-    print(f"\nResults for query: '{sample_query}'")
-    for i, doc in enumerate(matched_docs):
-        print(f"\n[Match {i+1}] Source File: {doc.metadata.get('source_file')} | Category: {doc.metadata.get('category')}")
-        print(f"Content:\n{doc.page_content}")
+    retriever = vector_store.as_retriever(search_kwargs={"k": top_k})
+    documents = retriever.invoke(query_text)
+    print(f"📄 [Retriever] Found {len(documents)} context chunks for query: '{query_text[:40]}...'")
+    return documents

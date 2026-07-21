@@ -1,62 +1,43 @@
 import os
-from typing import List
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
 
-def load_and_split_insurance_docs() -> List[Document]:
-    """
-    Scans the data subdirectories, extracts raw text from PDF binaries,
-    splits them using an overlap strategy, and injects structural metadata.
-    """
-    base_data_dir = "Insurance_claim/data"
-    doc_categories = {
-        "policy": os.path.join(base_data_dir, "policies"),
-        "endorsement": os.path.join(base_data_dir, "endorsements"),
-        "regulation": os.path.join(base_data_dir, "regulations")
-    }
+# Calculate absolute path relative to this script file location
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+VECTOR_DB_DIR = os.path.join(BASE_DIR, "vector_db")
 
-    all_chunks = []
+def run_ingestion():
+    """Reads all PDFs from data/ and indexes them into vector_db/."""
+    print(f"📥 [Ingest] Reading PDFs from: {DATA_DIR}")
+    print(f"💾 [Ingest] Target Vector DB path: {VECTOR_DB_DIR}")
 
-    # Configure the text splitter to keep sections intact
-    # 450 characters max per chunk with an overlap window of 50 characters
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=450,
-        chunk_overlap=50,
-        length_function=len,
-        add_start_index=True
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR, exist_ok=True)
+        print("⚠️ Data directory was missing; created empty data directory.")
+
+    loader = PyPDFDirectoryLoader(DATA_DIR)
+    docs = loader.load()
+
+    if not docs:
+        print("⚠️ No PDF files found in data directory!")
+        return
+
+    # Split documents into chunks
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=100)
+    chunks = text_splitter.split_documents(docs)
+    print(f"✂️ Split {len(docs)} documents into {len(chunks)} chunks.")
+
+    # Generate embeddings and persist to disk
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    Chroma.from_documents(
+        documents=chunks,
+        embedding=embeddings,
+        persist_directory=VECTOR_DB_DIR
     )
-
-    print("🚀 Initializing insurance document chunking engine...")
-
-    for category, dir_path in doc_categories.items():
-        if not os.path.exists(dir_path):
-            continue
-
-        for file_name in os.listdir(dir_path):
-            if file_name.endswith(".pdf"):
-                file_path = os.path.join(dir_path, file_name)
-                print(f"  Parsing document category [{category.upper()}]: {file_name}")
-
-                try:
-                    loader = PyPDFLoader(file_path)
-                    raw_pages = loader.load()
-
-                    # Split pages into granular text chunks
-                    chunks = text_splitter.split_documents(raw_pages)
-
-                    # Core task: Inject tracking metadata tags for the team's Evidence Citations
-                    for chunk in chunks:
-                        chunk.metadata["category"] = category
-                        chunk.metadata["source_file"] = file_name
-                        all_chunks.append(chunk)
-
-                except Exception as e:
-                    print(f"  ❌ Failed to parse document {file_name}: {str(e)}")
-
-    print(f"\n✅ Processing finalized! Total chunks generated: {len(all_chunks)}")
-    return all_chunks
+    print("✅ Ingestion complete! Vector store successfully generated.")
 
 if __name__ == "__main__":
-    # Internal execution test check
-    load_and_split_insurance_docs()
+    run_ingestion()
