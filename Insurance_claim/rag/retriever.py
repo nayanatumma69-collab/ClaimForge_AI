@@ -21,7 +21,7 @@ def get_embedding_engine():
         model_kwargs["token"] = hf_token
 
     return HuggingFaceEmbeddings(
-        model_name="openai/gpt-oss-120b",
+        model_name="all-MiniLM-L6-v2",
         model_kwargs=model_kwargs
     )
 
