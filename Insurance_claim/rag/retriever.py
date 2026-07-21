@@ -6,11 +6,24 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VECTOR_DB_DIR = os.path.join(BASE_DIR, "vector_db")
 
-# Cache embedding model in RAM across user re-runs to stay under 1GB memory limit
+# Cache embedding model in RAM and pass HF_TOKEN if available
 @st.cache_resource
 def get_embedding_engine():
     print("🔄 [Retriever] Loading Hugging Face Embedding Engine into cache...")
-    return HuggingFaceEmbeddings(model_name="openai/gpt-oss-120b")
+    
+    # Retrieve HF Token from Streamlit secrets or OS environment
+    hf_token = os.environ.get("HF_TOKEN")
+    if hasattr(st, "secrets") and "HF_TOKEN" in st.secrets:
+        hf_token = st.secrets["HF_TOKEN"]
+        
+    model_kwargs = {}
+    if hf_token:
+        model_kwargs["token"] = hf_token
+
+    return HuggingFaceEmbeddings(
+        model_name="all-MiniLM-L6-v2",
+        model_kwargs=model_kwargs
+    )
 
 def fetch_context(query_text: str, top_k: int = 4):
     """Fetches context chunks from local Chroma DB."""
