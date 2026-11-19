@@ -108,4 +108,29 @@ streamlit run app.py
 ## 💡 What I Learned
 
 - Building agentic workflows using LangGraph.
-- Implementing RAG
+- Implementing RAG-based document retrieval.
+- Working with vector databases and embeddings.
+- Designing relevance grading and query rewriting workflows.
+- Integrating LLMs into practical applications.
+- Implementing human-in-the-loop review for uncertain decisions.
+
+## 🔮 Future Enhancements
+
+- Add more insurance document formats.
+- Improve retrieval evaluation and validation.
+- Expand claim verification workflows.
+- Enhance monitoring and workflow observability.
+- Add more detailed claim review analytics.
+
+## 👩‍💻 Author
+
+**Nayana Tumma**
+
+Aspiring GenAI & Agentic AI Engineer
+
+- [LinkedIn](https://www.linkedin.com/in/nayana-tumma-23187687)
+- [GitHub](https://github.com/nayanatumma69-collab)
+
+---
+
+*Built as a practical project exploring Generative AI, Agentic AI, RAG, and intelligent workflow automation.*
