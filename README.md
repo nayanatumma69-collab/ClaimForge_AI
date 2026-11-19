@@ -49,11 +49,34 @@ ClaimForge AI uses an agentic AI workflow to assist this process. It retrieves r
 | PyPDF | PDF document processing |
 | Streamlit | User interface |
 
+
 ## 🏗️ Architecture
 
-The application follows an agentic retrieval and verification workflow:
+ClaimForge AI follows an agentic RAG workflow to retrieve, evaluate, and verify insurance claim information.
 
-**User Input → Document Retrieval → Relevance Grading → Query Rewriting (if needed) → Claim Verification → Confidence Evaluation → Final Review / Human Escalation**
+```mermaid
+flowchart TD
+    A["User uploads claim documents"] --> B["PDF Processing"]
+    B --> C["Text Extraction and Chunking"]
+    C --> D["HuggingFace Embeddings"]
+    D --> E[("ChromaDB Vector Store")]
+
+    F["User Claim Query"] --> G["LangGraph Agent Workflow"]
+    G --> H["Retrieve Relevant Context"]
+    E --> H
+    H --> I["Relevance Grader"]
+
+    I -->|Relevant| J["Claim Verification"]
+    I -->|Insufficient| K["Query Rewriting"]
+    K --> H
+
+    J --> L["Confidence Evaluation"]
+    L -->|Sufficient Confidence| M["Claim Review Result"]
+    L -->|Needs Review| N["Human-in-the-Loop Escalation"]
+
+    M --> O["Audit Trail"]
+    N --> O
+```
 
 ## ⚙️ Getting Started
 
