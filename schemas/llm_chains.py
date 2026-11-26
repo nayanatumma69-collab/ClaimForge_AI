@@ -2,10 +2,10 @@ import os
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
-from Insurance_claim.config import GROQ_API_KEY
+from config import GROQ_API_KEY
 
 # Import the Pydantic schemas built in Step 1
-from Insurance_claim.schemas.models import (
+from schemas.models import (
     RelevanceGrade,
     RewriteOutput,
     DecisionOutput,
@@ -14,11 +14,11 @@ from Insurance_claim.schemas.models import (
 )
 
 # Import the prompt string constants built in Step 2
-from Insurance_claim.prompts.relevance import RELEVANCE_PROMPT
-from Insurance_claim.prompts.rewrite import REWRITE_PROMPT
-from Insurance_claim.prompts.adjudication import ADJUDICATION_PROMPT
-from Insurance_claim.prompts.hallucination import HALLUCINATION_PROMPT
-from Insurance_claim.prompts.escalation import ESCALATION_PROMPT
+from prompts.relevance import RELEVANCE_PROMPT
+from prompts.rewrite import REWRITE_PROMPT
+from prompts.adjudication import ADJUDICATION_PROMPT
+from prompts.hallucination import HALLUCINATION_PROMPT
+from prompts.escalation import ESCALATION_PROMPT
 
 # Initialize the central core LLM instance using Groq
 print("🤖 Initializing central Groq Chat LLM engine (openai/gpt-oss-120b) in JSON Mode...")
