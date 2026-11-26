@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from Insurance_claim.schemas.llm_chains import escalate_chain
+from schemas.llm_chains import escalate_chain
 
 def escalation_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
