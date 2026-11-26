@@ -9,7 +9,7 @@ def load_and_split_insurance_docs() -> List[Document]:
     Scans the data subdirectories, extracts raw text from PDF binaries,
     splits them using an overlap strategy, and injects structural metadata.
     """
-    base_data_dir = "Insurance_claim/data"
+    base_data_dir = "data"
     doc_categories = {
         "policy": os.path.join(base_data_dir, "policies"),
         "endorsement": os.path.join(base_data_dir, "endorsements"),
