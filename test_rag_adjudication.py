@@ -4,8 +4,8 @@ import sys
 # Ensure local directories are visible to the interpreter path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from Insurance_claim.rag.retriever import fetch_context
-from Insurance_claim.schemas.llm_chains import adjudicate_chain
+from rag.retriever import fetch_context
+from schemas.llm_chains import adjudicate_chain
 
 def run_rag_integration_test():
     print("=====================================================================")
