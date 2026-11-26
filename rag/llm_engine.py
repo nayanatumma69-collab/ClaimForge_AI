@@ -10,7 +10,7 @@ def get_llm_engine():
     # Load API token safely from your unique workspace secret name
     if "GROQ_API_KEY" not in os.environ:
         try:
-            os.environ["GROQ_API_KEY"] = userdata.get("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")
+            os.environ["GROQ_API_KEY"] = userdata.get(GROQ_API_KEY)
         except Exception:
             raise ValueError("❌ Missing 'naya' key in Google Colab Secrets sidebar!")
 
