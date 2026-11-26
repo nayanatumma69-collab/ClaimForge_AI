@@ -5,11 +5,11 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import all functional nodes built by Sai
-from Insurance_claim.nodes.retrieve import retrieve_node
-from Insurance_claim.nodes.grader import relevance_node
-from Insurance_claim.nodes.adjudicate import adjudicate_node
-from Insurance_claim.nodes.hallucination import hallucination_node
-from Insurance_claim.nodes.escalate import escalation_node
+from nodes.retrieve import retrieve_node
+from nodes.grader import relevance_node
+from nodes.adjudicate import adjudicate_node
+from nodes.hallucination import hallucination_node
+from nodes.escalate import escalation_node
 
 def run_real_pdf_pipeline_test():
     print("=====================================================================")
