@@ -3,10 +3,10 @@ from typing import List
 from langchain_chroma import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.documents import Document
-from Insurance_claim.rag.ingest import load_and_split_insurance_docs
+from rag.ingest import load_and_split_insurance_docs
 
 # 1. Define configuration constants
-DB_DIR = "Insurance_claim/vector_db"
+DB_DIR = "vector_db"
 
 def get_vector_store() -> Chroma:
     """
@@ -18,6 +18,7 @@ def get_vector_store() -> Chroma:
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
     # If database files don't exist yet, build them
+    os.makedirs(DB_DIR, exist_ok=True)
     if not os.listdir(DB_DIR):
         print("Vector database is empty. Running data ingestion...")
         chunks = load_and_split_insurance_docs()
