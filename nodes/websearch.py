@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from langchain_core.documents import Document
 from tavily import TavilyClient
-from Insurance_claim.config import TAVILY_API_KEY
+from config import TAVILY_API_KEY
 
 def web_search_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
