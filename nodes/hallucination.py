@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from Insurance_claim.schemas.llm_chains import hallucination_chain
+from schemas.llm_chains import hallucination_chain
 
 def hallucination_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
