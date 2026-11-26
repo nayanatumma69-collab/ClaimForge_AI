@@ -2,16 +2,16 @@ from langgraph.graph import StateGraph, START, END
 from typing import Literal
 
 # Import the structural state shape built in Step 1
-from Insurance_claim.state import InsuranceState
+from state import InsuranceState
 
 # Import all processing node components built by Sai
-from Insurance_claim.nodes.retrieve import retrieve_node
-from Insurance_claim.nodes.grader import relevance_node
-from Insurance_claim.nodes.rewrite import rewrite_node
-from Insurance_claim.nodes.websearch import web_search_node
-from Insurance_claim.nodes.adjudicate import adjudicate_node
-from Insurance_claim.nodes.hallucination import hallucination_node
-from Insurance_claim.nodes.escalate import escalation_node
+from nodes.retrieve import retrieve_node
+from nodes.grader import relevance_node
+from nodes.rewrite import rewrite_node
+from nodes.websearch import web_search_node
+from nodes.adjudicate import adjudicate_node
+from nodes.hallucination import hallucination_node
+from nodes.escalate import escalation_node
 
 # ---------------------------------------------------------------------
 # CONDITIONAL ROUTING ROUTERS (THE CONTROL GATES)
