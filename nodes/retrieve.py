@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from Insurance_claim.rag.retriever import fetch_context
+from rag.retriever import fetch_context
 
 def retrieve_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
