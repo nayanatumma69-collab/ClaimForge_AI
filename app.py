@@ -1,5 +1,7 @@
 import ast
+import base64
 import html
+import random
 import time
 
 import streamlit as st
@@ -8,43 +10,101 @@ import streamlit as st
 st.set_page_config(page_title="ClaimForge AI — Adjudication Hub", page_icon="🛡️", layout="wide")
 
 
+# Original cartoon mascot, drawn in SVG so no image files are needed
+MASCOT_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+<path d="M100 18 L170 44 V100 C170 144 138 172 100 188 C62 172 30 144 30 100 V44 Z"
+ fill="#FFF7FD" stroke="#241C45" stroke-width="6" stroke-linejoin="round"/>
+<ellipse cx="74" cy="92" rx="10" ry="14" fill="#241C45"/><circle cx="78" cy="86" r="4" fill="#fff"/>
+<ellipse cx="126" cy="92" rx="10" ry="14" fill="#241C45"/><circle cx="130" cy="86" r="4" fill="#fff"/>
+<ellipse cx="60" cy="118" rx="12" ry="7" fill="#FFB3D1"/><ellipse cx="140" cy="118" rx="12" ry="7" fill="#FFB3D1"/>
+<path d="M84 120 Q100 138 116 120" fill="none" stroke="#241C45" stroke-width="6" stroke-linecap="round"/>
+<path d="M176 14 l5 12 12 5 -12 5 -5 12 -5 -12 -12 -5 12 -5z" fill="#FFE7A3"/>
+<path d="M20 140 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4z" fill="#FFE7A3"/>
+</svg>"""
+MASCOT = "data:image/svg+xml;base64," + base64.b64encode(MASCOT_SVG.encode()).decode()
+
+
+# Night City background, also drawn in code
+def night_city():
+    rng = random.Random(4)  # fixed seed: same skyline on every run
+    parts = [
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 690" preserveAspectRatio="xMidYMax slice">',
+        '<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#0B1030"/>',
+        '<stop offset="1" stop-color="#4B2A6E"/></linearGradient></defs>',
+        '<rect width="1100" height="690" fill="url(#s)"/>',
+    ]
+    for _ in range(140):
+        parts.append(f'<circle cx="{rng.randint(0, 1100)}" cy="{rng.randint(0, 420)}" '
+                     f'r="{rng.choice([1, 1.5, 2.5])}" fill="#fff"/>')
+    x = 0
+    while x < 1100:
+        width, height = rng.randint(50, 95), rng.randint(90, 260)
+        parts.append(f'<rect x="{x}" y="{690 - height}" width="{width}" height="{height}" fill="#0A0C1E"/>')
+        for wx in range(x + 8, x + width - 8, 16):
+            for wy in range(690 - height + 12, 680, 22):
+                if rng.random() < .35:
+                    parts.append(f'<rect x="{wx}" y="{wy}" width="6" height="9" fill="#FFD36E"/>')
+        x += width + 4
+    parts.append("</svg>")
+    return "data:image/svg+xml;base64," + base64.b64encode("".join(parts).encode()).decode()
+
+
 # ---------------------------------------------------------------------
 # STYLES
 # ---------------------------------------------------------------------
-st.markdown("""
+st.markdown(("""
 <style>
+.stApp {background: url("__CITY__") center bottom / cover fixed #12111C; color: #EEF1F8;}
+[data-testid="stHeader"] {background: transparent;}
+[data-testid="stSidebar"] {background: #0C0C16; border-right: 1px solid #2B2B4A;}
 .block-container {max-width: 1200px; padding-top: 3.5rem;}
-.hero {background: linear-gradient(120deg, #1E1B4B 0%, #4F46E5 60%, #0EA5E9 100%);
-       border-radius: 20px; padding: 32px 36px; margin-bottom: 22px; color: #fff;
-       box-shadow: 0 12px 32px rgba(79,70,229,.25);}
-.hero h1 {color: #fff; margin: 0; padding: 0; font-size: 2.1rem;}
-.hero p {color: #E0E7FF; margin: 8px 0 16px;}
-.chip {display: inline-block; background: rgba(255,255,255,.16); border-radius: 999px;
+.hero {display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+       background: linear-gradient(120deg, #5B00E0, #C4007A, #0066C8, #5B00E0); background-size: 300% 300%;
+       animation: flow 12s ease infinite; border-radius: 24px; padding: 28px 36px; margin-bottom: 22px;
+       box-shadow: 0 14px 40px rgba(196,0,122,.35);}
+.hero h1 {color: #fff; margin: 0; padding: 0; font-size: 2.3rem;}
+.hero p {color: #fff; margin: 8px 0 16px;}
+.hero img {width: 170px; animation: float 4s ease-in-out infinite;}
+.chip {display: inline-block; background: rgba(255,255,255,.18); color: #fff; border-radius: 999px;
        padding: 4px 14px; margin: 0 8px 6px 0; font-size: .82rem;}
-.card {background: #fff; color: #111827; border: 1px solid #E5E7EB; border-radius: 16px;
-       padding: 20px 22px; margin-bottom: 14px; box-shadow: 0 4px 16px rgba(17,24,39,.05);}
-.verdict {border-left: 8px solid var(--accent); background: var(--tint);}
-.verdict .label {font-size: .85rem; color: #4B5563;}
-.verdict .value {font-size: 1.8rem; font-weight: 700; color: var(--accent);}
-.track {background: #E5E7EB; border-radius: 999px; height: 10px; margin-top: 10px; overflow: hidden;}
-.fill {height: 100%; border-radius: 999px; background: var(--accent);}
-.row {display: flex; justify-content: space-between; font-weight: 600;}
-.cite {display: inline-block; background: #EEF2FF; color: #3730A3; border-radius: 8px;
-       padding: 4px 10px; margin: 4px 6px 0 0; font-size: .82rem;}
-.empty {text-align: center; color: #6B7280; border: 2px dashed #C7D2FE; padding: 56px 24px;}
-.empty .icon {font-size: 2.6rem;}
+.card {background: rgba(16,16,28,.92); color: #EEF1F8; border: 1px solid #2B2B4A; border-radius: 18px;
+       padding: 20px 22px; margin-bottom: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.28);}
 .steps {display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 18px;}
-.steps .card {flex: 1; min-width: 200px; margin: 0;}
+.steps .card {flex: 1; min-width: 200px; margin: 0; border-top: 4px solid #00F5C4; transition: transform .2s;}
+.steps .card:hover {transform: translateY(-5px);}
+.steps .card:nth-child(1) {background: #16102B;}
+.steps .card:nth-child(2) {background: #2A0E24;}
+.steps .card:nth-child(3) {background: #08202E;}
 .num {display: inline-block; width: 28px; height: 28px; line-height: 28px; text-align: center;
-      border-radius: 50%; background: #4F46E5; color: #fff; font-weight: 700; margin-right: 8px;}
-.verdict {animation: rise .5s ease-out;}
-@keyframes rise {from {opacity: 0; transform: translateY(12px);} to {opacity: 1; transform: none;}}
-div.stButton > button {border-radius: 12px; font-weight: 600;}
-div.stButton > button[kind="primary"] {background: linear-gradient(90deg, #4F46E5, #0EA5E9);
+      border-radius: 50%; background: #00F5C4; color: #07070D; font-weight: 700; margin-right: 8px;}
+.verdict {border-left: 8px solid var(--accent); animation: rise .5s ease-out;}
+.verdict .label {font-size: .85rem; color: #B7B3D1;}
+.verdict .value {font-size: 1.8rem; font-weight: 700; color: var(--accent);}
+.track {background: #34314D; border-radius: 999px; height: 10px; margin-top: 10px; overflow: hidden;}
+.fill {height: 100%; border-radius: 999px; background: var(--accent); animation: grow 1s ease-out;}
+.row {display: flex; justify-content: space-between; font-weight: 600;}
+.cite {display: inline-block; background: #2A1B55; color: #00F5C4; border-radius: 8px;
+       padding: 4px 10px; margin: 4px 6px 0 0; font-size: .82rem;}
+.empty {text-align: center; color: #B7B3D1; border: 2px dashed #7A5CFF; padding: 56px 24px;}
+.empty .icon {font-size: 2.8rem; animation: float 3s ease-in-out infinite;}
+div.stButton > button, div.stDownloadButton > button {background: #10101C; color: #EEF1F8;
+       border: 1px solid #00F5C4; border-radius: 12px; font-weight: 600; transition: transform .15s;}
+div.stButton > button:hover, div.stDownloadButton > button:hover {border-color: #FF4FC3;
+       color: #FF4FC3; transform: translateY(-2px);}
+div.stButton > button[kind="primary"] {background: linear-gradient(90deg, #7A1FFF, #E0008C);
        border: none; color: #fff; padding: .7rem 1rem;}
-.stTextArea textarea {border-radius: 12px;}
+div.stButton > button[kind="primary"]:hover {color: #fff;}
+.stTextArea textarea {border-radius: 12px; background: #10101C;}
+[data-testid="stExpander"], [data-testid="stAlert"], .stTabs [data-baseweb="tab-list"] {
+       background: rgba(16,16,28,.92); border-radius: 12px;}
+.stTabs [data-baseweb="tab-list"] {padding: 0 12px;}
+@keyframes flow {0%, 100% {background-position: 0% 50%;} 50% {background-position: 100% 50%;}}
+@keyframes float {0%, 100% {transform: translateY(0);} 50% {transform: translateY(-10px);}}
+@keyframes rise {from {opacity: 0; transform: translateY(12px);} to {opacity: 1; transform: none;}}
+@keyframes grow {from {width: 0;}}
+@media (prefers-reduced-motion: reduce) {* {animation: none !important; transition: none !important;}}
 </style>
-""", unsafe_allow_html=True)
+""").replace("__CITY__", night_city()), unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------
@@ -126,9 +186,9 @@ SAMPLES = {
 }
 
 STYLES = {  # decision: (icon, headline, accent colour, background tint)
-    "Covered": ("✅", "Covered", "#047857", "#ECFDF5"),
-    "Not Covered": ("❌", "Not Covered", "#B91C1C", "#FEF2F2"),
-    "Escalate": ("⚠️", "Sent for human review", "#B45309", "#FFFBEB"),
+    "Covered": ("✅", "Covered", "#00F5C4", "#10101C"),
+    "Not Covered": ("❌", "Not Covered", "#FF6B8B", "#10101C"),
+    "Escalate": ("⚠️", "Sent for human review", "#FFD36E", "#10101C"),
 }
 
 
@@ -193,10 +253,11 @@ with st.sidebar:
     st.caption("AI-assisted output. A claims officer should confirm any final decision.")
 
 st.markdown(
-    '<div class="hero"><h1>🛡️ ClaimForge AI</h1>'
+    '<div class="hero"><div><h1>ClaimForge AI</h1>'
     '<p>Describe a claim and get a policy-backed coverage assessment.</p>'
     '<span class="chip">🏠 Home</span><span class="chip">🏥 Health</span>'
-    '<span class="chip">🚗 Accident</span><span class="chip">❤️ Life</span></div>',
+    '<span class="chip">🚗 Accident</span><span class="chip">❤️ Life</span></div>'
+    f'<img src="{MASCOT}" alt="Smiling shield mascot"></div>',
     unsafe_allow_html=True,
 )
 
@@ -244,6 +305,8 @@ with col_results:
                     outcome = run_claim(user_claim, progress)
                     progress.update(label="Analysis complete", state="complete", expanded=False)
                 st.session_state.result = outcome
+                if outcome.get("decision") == "Covered":
+                    st.balloons()
                 history = st.session_state.get("history", [])
                 st.session_state.history = [outcome, *history][:5]
             except Exception as e:
